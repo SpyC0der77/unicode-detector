@@ -21,7 +21,13 @@ A modern web application for exploring, searching, and recognizing Unicode chara
 
 ### Installation
 
-1. Install dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/SpyC0der77/unicode-detector.git
+cd unicode-detector
+```
+
+2. Install dependencies:
 ```bash
 npm install
 # or
@@ -137,3 +143,7 @@ npm start
 ## License
 
 This project is open source and available under the MIT License.
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
