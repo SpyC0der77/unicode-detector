@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Copy, Download, Check, ExternalLink } from "lucide-react"
 import {
   Dialog,
@@ -9,6 +9,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import type { UnicodeCharacter } from "@/lib/unicode-data"
 
 interface CharacterModalProps {
@@ -27,6 +33,63 @@ interface InfoRow {
 
 export function CharacterModal({ character, open, onOpenChange }: CharacterModalProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
+  const [wikipediaExists, setWikipediaExists] = useState<boolean | null>(null)
+  const currentCodePointRef = useRef<number | null>(null)
+
+  // Reset state when modal closes or character becomes null
+  useEffect(() => {
+    if (!character || !open) {
+      currentCodePointRef.current = null
+    }
+  }, [character, open])
+
+  useEffect(() => {
+    if (!character || !open) {
+      return
+    }
+
+    // Only check if codePoint changed
+    if (currentCodePointRef.current === character.codePoint) {
+      return
+    }
+
+    currentCodePointRef.current = character.codePoint
+    let cancelled = false
+
+    const checkWikipediaArticle = async () => {
+      const codePointHex = character.codePoint.toString(16).toUpperCase().padStart(4, "0")
+      const articleTitle = `U+${codePointHex}`
+      
+      // Reset state at start of async operation
+      if (!cancelled) {
+        setWikipediaExists(null)
+      }
+      
+      try {
+        const response = await fetch(
+          `https://en.wikipedia.org/w/api.php?action=query&format=json&titles=${encodeURIComponent(articleTitle)}&origin=*`,
+          { method: "GET" }
+        )
+        const data = await response.json()
+        const pages = data.query?.pages || {}
+        const pageId = Object.keys(pages)[0]
+        // If pageId is -1, the page doesn't exist
+        if (!cancelled) {
+          setWikipediaExists(pageId !== "-1" && pageId !== undefined)
+        }
+      } catch {
+        if (!cancelled) {
+          setWikipediaExists(false)
+        }
+      }
+    }
+
+    checkWikipediaArticle()
+
+    return () => {
+      cancelled = true
+    }
+  }, [character, open])
 
   if (!character) return null
 
@@ -90,11 +153,12 @@ export function CharacterModal({ character, open, onOpenChange }: CharacterModal
   ]
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-foreground">Character Details</DialogTitle>
-        </DialogHeader>
+    <TooltipProvider>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Character Details</DialogTitle>
+          </DialogHeader>
         
         <div className="flex flex-col items-center gap-6 py-4">
           <div className="flex items-center justify-center w-32 h-32 rounded-lg bg-muted">
@@ -126,15 +190,29 @@ export function CharacterModal({ character, open, onOpenChange }: CharacterModal
               <span className="text-sm text-muted-foreground">{row.label}</span>
               <div className="flex items-center gap-2">
                 {row.link ? (
-                  <a
-                    href={row.value}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-mono text-foreground hover:underline flex items-center gap-1"
-                  >
-                    <code>{row.displayValue || row.value}</code>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  wikipediaExists === false ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="text-sm font-mono text-muted-foreground flex items-center gap-1 opacity-50 cursor-not-allowed">
+                          <code>{row.displayValue || row.value}</code>
+                          <ExternalLink className="w-3 h-3" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Wikipedia article does not exist</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <a
+                      href={row.value}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-mono text-foreground hover:underline flex items-center gap-1"
+                    >
+                      <code>{row.displayValue || row.value}</code>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  )
                 ) : (
                   <>
                     <code className="text-sm font-mono text-foreground">{row.value}</code>
@@ -160,5 +238,6 @@ export function CharacterModal({ character, open, onOpenChange }: CharacterModal
         </div>
       </DialogContent>
     </Dialog>
+    </TooltipProvider>
   )
 }
