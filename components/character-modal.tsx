@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, Download, Check } from "lucide-react"
+import { Copy, Download, Check, ExternalLink } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -15,6 +15,14 @@ interface CharacterModalProps {
   character: UnicodeCharacter | null
   open: boolean
   onOpenChange: (open: boolean) => void
+}
+
+interface InfoRow {
+  label: string
+  value: string
+  copyable: boolean
+  link?: boolean
+  displayValue?: string
 }
 
 export function CharacterModal({ character, open, onOpenChange }: CharacterModalProps) {
@@ -70,13 +78,15 @@ export function CharacterModal({ character, open, onOpenChange }: CharacterModal
   }
 
   const codePointHex = character.codePoint.toString(16).toUpperCase().padStart(4, "0")
+  const wikipediaUrl = `https://en.wikipedia.org/wiki/U+${codePointHex}`
 
-  const infoRows = [
+  const infoRows: InfoRow[] = [
     { label: "Character", value: character.char, copyable: true },
     ...(character.commonName ? [{ label: "Common Name", value: character.commonName, copyable: false }] : []),
     { label: "Code Point", value: `U+${codePointHex}`, copyable: true },
     { label: "Decimal", value: character.codePoint.toString(), copyable: true },
     { label: "Category", value: character.category, copyable: false },
+    { label: "Wikipedia", value: wikipediaUrl, displayValue: `U+${codePointHex}`, copyable: false, link: true },
   ]
 
   return (
@@ -115,20 +125,34 @@ export function CharacterModal({ character, open, onOpenChange }: CharacterModal
             >
               <span className="text-sm text-muted-foreground">{row.label}</span>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono text-foreground">{row.value}</code>
-                {row.copyable && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => copyToClipboard(row.value, row.label)}
+                {row.link ? (
+                  <a
+                    href={row.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-mono text-foreground hover:underline flex items-center gap-1"
                   >
-                    {copiedField === row.label ? (
-                      <Check className="w-3 h-3 text-green-500" />
-                    ) : (
-                      <Copy className="w-3 h-3" />
+                    <code>{row.displayValue || row.value}</code>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                ) : (
+                  <>
+                    <code className="text-sm font-mono text-foreground">{row.value}</code>
+                    {row.copyable && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => copyToClipboard(row.value, row.label)}
+                      >
+                        {copiedField === row.label ? (
+                          <Check className="w-3 h-3 text-green-500" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                      </Button>
                     )}
-                  </Button>
+                  </>
                 )}
               </div>
             </div>
