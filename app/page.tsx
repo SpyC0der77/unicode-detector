@@ -6,6 +6,7 @@ import { SearchHeader } from "@/components/search-header"
 import { CharacterGrid } from "@/components/character-grid"
 import { CharacterModal } from "@/components/character-modal"
 import { DrawingModal } from "@/components/drawing-modal"
+import { BulkExportToolbar } from "@/components/bulk-export-toolbar"
 import {
   UNICODE_CATEGORIES,
   generateCharactersForCategory,
@@ -22,7 +23,25 @@ export default function Home() {
   const [characterModalOpen, setCharacterModalOpen] = useState(false)
   const [drawingModalOpen, setDrawingModalOpen] = useState(false)
   const [drawnCharacters, setDrawnCharacters] = useState<string[]>([])
+  const [selectedCharacters, setSelectedCharacters] = useState<Set<number>>(new Set())
+  const [selectionMode, setSelectionMode] = useState(false)
   const searchParams = useSearchParams()
+
+  const createCharacterFromCodePoint = (codePoint: number): UnicodeCharacter => {
+    const char = String.fromCodePoint(codePoint)
+    const category = UNICODE_CATEGORIES.find(
+      (c) => codePoint >= c.range[0] && codePoint <= c.range[1]
+    )
+    return {
+      char,
+      codePoint,
+      name: `Unicode U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
+      commonName: getCommonName(codePoint),
+      category: category?.name || "Unknown",
+      htmlEntity: `&#${codePoint};`,
+      cssCode: `\\${codePoint.toString(16).toUpperCase()}`,
+    }
+  }
 
   const characters = useMemo(() => {
     let result: UnicodeCharacter[] = []
@@ -31,23 +50,30 @@ export default function Home() {
     if (drawnCharacters.length > 0) {
       result = drawnCharacters.map((char) => {
         const codePoint = char.codePointAt(0) || 0
-        const category = UNICODE_CATEGORIES.find(
-          (c) => codePoint >= c.range[0] && codePoint <= c.range[1]
-        )
-        return {
-          char,
-          codePoint,
-          name: `Unicode U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`,
-          commonName: getCommonName(codePoint),
-          category: category?.name || "Unknown",
-          htmlEntity: `&#${codePoint};`,
-          cssCode: `\\${codePoint.toString(16).toUpperCase()}`,
-        }
+        return createCharacterFromCodePoint(codePoint)
       })
     }
     // If there's a search query, search across selected categories (or all if none selected)
     else if (searchQuery.trim()) {
       result = searchCharacters(searchQuery, selectedCategories.length > 0 ? selectedCategories : null)
+      
+      // If we have selected characters and are searching, prepend selected ones not in results
+      if (selectedCharacters.size > 0) {
+        const resultCodePoints = new Set(result.map(c => c.codePoint))
+        const selectedNotInResults: UnicodeCharacter[] = []
+        
+        for (const codePoint of selectedCharacters) {
+          if (!resultCodePoints.has(codePoint)) {
+            try {
+              selectedNotInResults.push(createCharacterFromCodePoint(codePoint))
+            } catch {
+              // Skip invalid code points
+            }
+          }
+        }
+        
+        result = [...selectedNotInResults, ...result]
+      }
     }
     // Otherwise show characters from selected categories, or all categories if none selected
     else {
@@ -61,12 +87,47 @@ export default function Home() {
     }
     
     return result
-  }, [selectedCategories, searchQuery, drawnCharacters])
+  }, [selectedCategories, searchQuery, drawnCharacters, selectedCharacters])
 
   const handleSelectCharacter = (character: UnicodeCharacter) => {
-    setSelectedCharacter(character)
-    setCharacterModalOpen(true)
+    if (selectionMode) {
+      setSelectedCharacters((prev) => {
+        const newSet = new Set(prev)
+        if (newSet.has(character.codePoint)) {
+          newSet.delete(character.codePoint)
+        } else {
+          newSet.add(character.codePoint)
+        }
+        return newSet
+      })
+    } else {
+      setSelectedCharacter(character)
+      setCharacterModalOpen(true)
+    }
   }
+
+  const handleToggleSelectionMode = () => {
+    setSelectionMode((prev) => {
+      if (prev) {
+        // Clear selection when exiting selection mode
+        setSelectedCharacters(new Set())
+      }
+      return !prev
+    })
+  }
+
+  const handleSelectAllVisible = () => {
+    const visibleCodePoints = new Set(characters.map((c) => c.codePoint))
+    setSelectedCharacters(visibleCodePoints)
+  }
+
+  const handleClearSelection = () => {
+    setSelectedCharacters(new Set())
+  }
+
+  const selectedCharactersList = useMemo(() => {
+    return characters.filter((c) => selectedCharacters.has(c.codePoint))
+  }, [characters, selectedCharacters])
 
   const handleDrawSearch = (chars: string[]) => {
     setDrawnCharacters(chars)
@@ -122,7 +183,17 @@ export default function Home() {
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         onDrawClick={() => setDrawingModalOpen(true)}
+        selectionMode={selectionMode}
+        onToggleSelectionMode={handleToggleSelectionMode}
       />
+      
+      {selectionMode && (
+        <BulkExportToolbar
+          selectedCharacters={selectedCharactersList}
+          onClearSelection={handleClearSelection}
+          totalCount={characters.length}
+        />
+      )}
       
       <div className="flex-1 flex overflow-hidden">
         <CategoryFilter
@@ -137,6 +208,19 @@ export default function Home() {
             characters={characters}
             onSelectCharacter={handleSelectCharacter}
             isLoading={false}
+            selectionMode={selectionMode}
+            selectedCodePoints={selectedCharacters}
+            onToggleSelect={(codePoint) => {
+              setSelectedCharacters((prev) => {
+                const newSet = new Set(prev)
+                if (newSet.has(codePoint)) {
+                  newSet.delete(codePoint)
+                } else {
+                  newSet.add(codePoint)
+                }
+                return newSet
+              })
+            }}
           />
         </div>
       </div>

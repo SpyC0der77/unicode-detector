@@ -3,17 +3,28 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import type { UnicodeCharacter } from "@/lib/unicode-data"
 import { cn } from "@/lib/utils"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface CharacterGridProps {
   characters: UnicodeCharacter[]
   onSelectCharacter: (character: UnicodeCharacter) => void
   isLoading?: boolean
+  selectionMode?: boolean
+  selectedCodePoints?: Set<number>
+  onToggleSelect?: (codePoint: number) => void
 }
 
 const BATCH_SIZE = 200
 const LOAD_THRESHOLD = 300
 
-export function CharacterGrid({ characters, onSelectCharacter, isLoading }: CharacterGridProps) {
+export function CharacterGrid({ 
+  characters, 
+  onSelectCharacter, 
+  isLoading,
+  selectionMode = false,
+  selectedCodePoints = new Set(),
+  onToggleSelect,
+}: CharacterGridProps) {
   const [visibleCount, setVisibleCount] = useState(BATCH_SIZE)
   const containerRef = useRef<HTMLDivElement>(null)
   const loadingRef = useRef(false)
@@ -83,21 +94,41 @@ export function CharacterGrid({ characters, onSelectCharacter, isLoading }: Char
           {characters.length.toLocaleString()} characters {hasMore && `(showing ${visibleCount.toLocaleString()})`}
         </p>
         <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-14 gap-2">
-          {visibleCharacters.map((character, index) => (
-            <button
-              key={`${character.codePoint}-${index}`}
-              onClick={() => onSelectCharacter(character)}
-              className={cn(
-                "aspect-square flex items-center justify-center rounded-md",
-                "bg-muted hover:bg-accent transition-colors",
-                "text-2xl text-foreground",
-                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
-              )}
-              title={`U+${character.codePoint.toString(16).toUpperCase().padStart(4, "0")}`}
-            >
-              {character.char}
-            </button>
-          ))}
+          {visibleCharacters.map((character, index) => {
+            const isSelected = selectedCodePoints.has(character.codePoint)
+            return (
+              <div
+                key={`${character.codePoint}-${index}`}
+                className={cn(
+                  "relative aspect-square rounded-md",
+                  "bg-muted hover:bg-accent transition-colors",
+                  selectionMode && isSelected && "!bg-primary/20"
+                )}
+              >
+                {selectionMode && !isSelected && (
+                  <div className="absolute top-1 left-1 z-10">
+                    <Checkbox
+                      checked={false}
+                      onCheckedChange={() => onToggleSelect?.(character.codePoint)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="bg-background/90"
+                    />
+                  </div>
+                )}
+                <button
+                  onClick={() => onSelectCharacter(character)}
+                  className={cn(
+                    "w-full h-full flex items-center justify-center rounded-md",
+                    "text-2xl text-foreground",
+                    !selectionMode && "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+                  )}
+                  title={`U+${character.codePoint.toString(16).toUpperCase().padStart(4, "0")}`}
+                >
+                  {character.char}
+                </button>
+              </div>
+            )
+          })}
         </div>
         {hasMore && (
           <p className="text-center text-sm text-muted-foreground mt-4">

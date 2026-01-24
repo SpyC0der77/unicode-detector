@@ -1,19 +1,24 @@
 "use client"
 
-import { Search, Pencil } from "lucide-react"
+import { Search, Pencil, CheckSquare, Square } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface SearchHeaderProps {
   searchQuery: string
   onSearchChange: (query: string) => void
   onDrawClick: () => void
+  selectionMode?: boolean
+  onToggleSelectionMode?: () => void
 }
 
 export function SearchHeader({
   searchQuery,
   onSearchChange,
   onDrawClick,
+  selectionMode = false,
+  onToggleSelectionMode,
 }: SearchHeaderProps) {
   return (
     <header className="border-b border-border bg-card p-4">
@@ -34,9 +39,25 @@ export function SearchHeader({
             size="icon"
             onClick={onDrawClick}
             title="Draw to search"
+            disabled={selectionMode}
           >
             <Pencil className="w-4 h-4" />
           </Button>
+          
+          {onToggleSelectionMode && (
+            <Button
+              variant={selectionMode ? "default" : "outline"}
+              size="icon"
+              onClick={onToggleSelectionMode}
+              title={selectionMode ? "Exit selection mode" : "Select multiple characters"}
+            >
+              {selectionMode ? (
+                <CheckSquare className="w-4 h-4" />
+              ) : (
+                <Square className="w-4 h-4" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </header>
