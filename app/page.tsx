@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import { Github } from "lucide-react"
 import { CategoryFilter } from "@/components/category-sidebar"
 import { SearchHeader } from "@/components/search-header"
 import { CharacterGrid } from "@/components/character-grid"
@@ -169,14 +170,26 @@ export default function Home() {
     <main className="h-screen flex flex-col bg-background">
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h1 className="text-xl font-semibold text-foreground">Unicode Explorer</h1>
-        {drawnCharacters.length > 0 && (
-          <button
-            onClick={() => setDrawnCharacters([])}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        <div className="flex items-center gap-4">
+          {drawnCharacters.length > 0 && (
+            <button
+              onClick={() => setDrawnCharacters([])}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Clear drawing results
+            </button>
+          )}
+          <a
+            href="https://github.com/SpyC0der77/unicode-detector"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+            aria-label="GitHub repository"
           >
-            Clear drawing results
-          </button>
-        )}
+            <Github className="w-4 h-4" />
+            <span>GitHub</span>
+          </a>
+        </div>
       </div>
       
       <SearchHeader

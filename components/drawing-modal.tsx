@@ -2,12 +2,13 @@
 
 import React from "react"
 import { useRef, useState, useEffect, useCallback } from "react"
-import { X, Upload } from "lucide-react"
+import { X, Upload, Info } from "lucide-react"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 
@@ -98,6 +99,7 @@ export function DrawingModal({ open, onOpenChange, onSearch }: DrawingModalProps
   const [isDrawing, setIsDrawing] = useState(false)
   const [hasDrawn, setHasDrawn] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [aboutModalOpen, setAboutModalOpen] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -253,14 +255,24 @@ export function DrawingModal({ open, onOpenChange, onSearch }: DrawingModalProps
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg" showCloseButton={false}>
-        <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-foreground">Draw a Character</DialogTitle>
-          <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
-            <X className="w-4 h-4" />
-          </Button>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg" showCloseButton={false}>
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle className="text-foreground">Draw a Character</DialogTitle>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setAboutModalOpen(true)}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+              >
+                <Info className="w-4 h-4" />
+                About
+              </button>
+              <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </DialogHeader>
         
         <div className="flex flex-col items-center gap-4">
           <p className="text-sm text-muted-foreground text-center">
@@ -318,5 +330,42 @@ export function DrawingModal({ open, onOpenChange, onSearch }: DrawingModalProps
         </div>
       </DialogContent>
     </Dialog>
+
+    <Dialog open={aboutModalOpen} onOpenChange={setAboutModalOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-foreground">About Character Recognition</DialogTitle>
+          <DialogDescription>
+            Learn how the character recognition feature works
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 text-sm text-muted-foreground">
+          <p>
+            The character recognition feature uses the <a href="https://shapecatcher.com" target="_blank" rel="noopener noreferrer" className="underline text-primary hover:text-primary/80">ShapeCatcher API</a> to identify Unicode characters from your drawings or uploaded images.
+          </p>
+          
+          <div className="space-y-2">
+            <h4 className="font-semibold text-foreground">How it works:</h4>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Draw a character on the canvas or upload an image</li>
+              <li>The system processes your input and converts it to a standardized format</li>
+              <li>It compares your drawing against a database of Unicode characters</li>
+              <li>You&apos;ll see matching characters ranked by similarity</li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="font-semibold text-foreground">Tips for best results:</h4>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Draw characters clearly and with good contrast</li>
+              <li>Upload images with a simple background for better recognition</li>
+              <li>The system automatically processes backgrounds to improve accuracy</li>
+            </ul>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
