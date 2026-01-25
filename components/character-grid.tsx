@@ -105,10 +105,10 @@ export function CharacterGrid({
                   selectionMode && isSelected && "!bg-primary/20"
                 )}
               >
-                {selectionMode && !isSelected && (
+                {selectionMode && (
                   <div className="absolute top-1 left-1 z-10">
                     <Checkbox
-                      checked={false}
+                      checked={isSelected}
                       onCheckedChange={() => onToggleSelect?.(character.codePoint)}
                       onClick={(e) => e.stopPropagation()}
                       className="bg-background/90"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Github, Star } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { CategoryFilter } from "@/components/category-sidebar"
 import { SearchHeader } from "@/components/search-header"
 import { CharacterGrid } from "@/components/character-grid"
@@ -197,22 +198,27 @@ export default function Home() {
               Clear drawing results
             </button>
           )}
-          <a
-            href="https://github.com/SpyC0der77/unicode-detector"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-            aria-label="GitHub repository"
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
           >
-            <Github className="w-4 h-4" />
-            <span>GitHub</span>
-            {starCount !== null && (
-              <span className="flex items-center gap-1">
-                <Star className="w-3.5 h-3.5 fill-current" />
-                <span>{starCount.toLocaleString()}</span>
-              </span>
-            )}
-          </a>
+            <a
+              href="https://github.com/SpyC0der77/unicode-detector"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub repository"
+            >
+              <Github className="w-4 h-4" />
+              <span>GitHub</span>
+              {starCount !== null && (
+                <span className="flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  <span>{starCount.toLocaleString()}</span>
+                </span>
+              )}
+            </a>
+          </Button>
         </div>
       </div>
       
