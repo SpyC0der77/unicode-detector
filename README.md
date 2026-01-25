@@ -8,7 +8,8 @@ A modern web application for exploring, searching, and recognizing Unicode chara
 - **Category Filtering** - Browse characters by Unicode categories (Latin, Greek, Math Operators, Arrows, etc.)
 - **Draw to Recognize** - Draw a character and find matching Unicode symbols
 - **Image Upload** - Upload images with automatic background removal for character recognition
-- **Character Details** - View detailed information including code points, common names, and categories
+- **Character Details** - View detailed information including code points, common names, categories, and similar characters
+- **Similar Characters** - Automatically discover visually similar Unicode characters for any character
 - **Export Options** - Download characters as SVG or PNG (with transparent or solid backgrounds)
 - **Modern UI** - Built with Next.js, React, Tailwind CSS, and Shadcn/UI
 
@@ -72,6 +73,7 @@ bun dev
 2. Draw a character on the canvas
 3. Click "Search" to find matching Unicode characters
 4. Results will display matching characters
+5. Click "About" in the drawing modal to learn more about how character recognition works
 
 ### Uploading Images
 
@@ -89,6 +91,10 @@ Click any character to view:
 - Code point (hexadecimal)
 - Decimal value
 - Category
+- Wikipedia link (if available)
+- Similar characters - Automatically displayed characters that are visually similar
+
+The similar characters grid allows you to quickly navigate to related characters by clicking on them.
 
 ### Downloading Characters
 
@@ -131,7 +137,7 @@ unicode_detector/
 
 ## API
 
-The app uses the [ShapeCatcher](https://shapecatcher.com) API for character recognition from drawings and images.
+The app uses the [ShapeCatcher](https://shapecatcher.com) API for character recognition from drawings and images. The character recognition feature automatically processes your drawings and uploaded images to find matching Unicode characters, with automatic background removal for uploaded images.
 
 ## Building for Production
 
