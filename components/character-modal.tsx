@@ -365,7 +365,7 @@ export function CharacterModal({ character, open, onOpenChange, onSelectCharacte
             {isLoadingSimilar ? (
               <div className="text-sm text-muted-foreground">Finding similar characters...</div>
             ) : (
-              <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto p-1">
+              <div className="grid grid-cols-8 gap-2 max-h-48 overflow-y-auto p-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {similarCharacters.map((similarChar) => (
                   <button
                     key={similarChar.codePoint}
