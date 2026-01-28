@@ -21,8 +21,8 @@ export function CategoryFilter({
   const noneSelected = selectedCategories.length === 0
 
   return (
-    <div className="w-1/5 min-w-48 shrink-0 border-r border-border bg-card flex flex-col">
-      <div className="p-4 border-b border-border flex items-center justify-between">
+    <div className="w-1/5 min-w-48 shrink-0 border-r border-border bg-card flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-border flex items-center justify-between shrink-0">
         <h2 className="font-medium text-sm text-foreground">Filters</h2>
         <div className="flex gap-2">
           <button
@@ -42,7 +42,7 @@ export function CategoryFilter({
           </button>
         </div>
       </div>
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="p-3 space-y-1">
           {UNICODE_CATEGORIES.map((category) => (
             <label
